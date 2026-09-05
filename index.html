@@ -1,3 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cons-istant Premium Scheduling</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>Cons-istant</h1>
+    <nav class="top-nav" aria-label="Main navigation">
+      <button class="nav-btn active" data-screen="bookingFlow">Booking Flow</button>
+      <button class="nav-btn" data-screen="dashboard">Dashboard</button>
+      <button class="nav-btn" data-screen="createMeeting">Create Meeting</button>
+      <button class="nav-btn" data-screen="availability">Availability</button>
+      <button class="nav-btn" data-screen="bookingsList">Bookings</button>
+    </nav>
+  </header>
+
+  <main class="app-shell">
+    <section id="bookingFlow" class="screen active-screen">
+      <article id="meetingType" class="card flow-step active-step">
+        <div class="profile-head">
+          <img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=200&h=200&q=80" alt="Host avatar" class="avatar" />
+          <h2>Rakshan Kamalakannan</h2>
+          <p>Select a meeting type</p>
+        </div>
+
+        <div class="meeting-types" role="listbox" aria-label="Meeting type">
+          <button class="meeting-type selected" data-duration="30 min meeting" data-price="$120" aria-selected="true">
+            <span>30 min meeting</span>
+            <small class="badge">30m</small>
+          </button>
+          <button class="meeting-type" data-duration="15 min meeting" data-price="$70" aria-selected="false">
+            <span>15 min meeting</span>
+            <small class="badge">15m</small>
+          </button>
+        </div>
+
+        <button id="continueToBooking" class="btn primary">Continue</button>
+      </article>
+
+      <article id="bookingPanel" class="card flow-step">
+        <div class="booking-grid">
+          <aside class="meeting-info panel">
+            <img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=200&h=200&q=80" alt="Host avatar" class="avatar" />
+            <h3>Rakshan Kamalakannan</h3>
+            <p id="selectedMeetingLabel">30 min meeting</p>
+            <ul>
+              <li><strong>Duration:</strong> <span id="selectedDuration">30 min</span></li>
+              <li><strong>Location:</strong> Google Meet</li>
+              <li><strong>Price:</strong> <span id="selectedPrice">$120</span></li>
+            </ul>
+          </aside>
+
+          <section class="calendar panel" aria-label="Select date">
+            <div class="calendar-head">
+              <h3>September 2026</h3>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+              <button class="date-cell">3</button>
+              <button class="date-cell">4</button>
+              <button class="date-cell">5</button>
+              <button class="date-cell selected-date">6</button>
+              <button class="date-cell">7</button>
+              <button class="date-cell">8</button>
+              <button class="date-cell">9</button>
+              <button class="date-cell">10</button>
+              <button class="date-cell">11</button>
+              <button class="date-cell">12</button>
+            </div>
+          </section>
+
+          <section class="slots panel" aria-label="Select time">
+            <div class="slot-head">
+              <h3>Available times</h3>
+              <div class="toggle-wrap" role="group" aria-label="Time format toggle">
+                <button id="format12" class="toggle active">12h</button>
+                <button id="format24" class="toggle">24h</button>
+              </div>
+            </div>
+            <div id="slotList" class="slot-list"></div>
+          </section>
+        </div>
+      </article>
+
+      <article id="detailsForm" class="card flow-step">
+        <h2>Your details</h2>
+        <p id="slotSummary">30 min meeting · Sep 6 · 10:30 AM</p>
+        <form id="bookingForm">
+          <label for="name">Name</label>
+          <input id="name" required placeholder="Your full name" />
+          <label for="email">Email</label>
+          <input id="email" type="email" required placeholder="you@company.com" />
+          <button class="btn primary" type="submit">Confirm &amp; Pay</button>
+        </form>
+      </article>
+
+      <article id="paymentStep" class="card flow-step">
+        <h2>Paddle Checkout</h2>
+        <div class="payment-box">
+          <div>
+            <p>Order summary</p>
+            <h3 id="paymentSummary">30 min meeting · $120</h3>
+            <small>Secure checkout via Paddle</small>
+          </div>
+          <button id="payNow" class="btn primary">Pay with Paddle</button>
+        </div>
+      </article>
+
+      <article id="confirmationStep" class="card flow-step">
+        <h2>Booking Confirmed</h2>
+        <p class="success">Payment complete and meeting booked.</p>
+        <ul class="confirm-list">
+          <li><strong>Meeting:</strong> <span id="finalMeeting">30 min meeting</span></li>
+          <li><strong>When:</strong> <span id="finalWhen">Sep 6, 10:30 AM</span></li>
+          <li><strong>Google Meet:</strong> <a href="#" aria-label="Google Meet link">meet.google.com/premium-slot</a></li>
+          <li><strong>Paddle Ref:</strong> PDL-2026-0915-884</li>
+        </ul>
+        <button id="restart" class="btn secondary">Book another</button>
+      </article>
+    </section>
+
+    <section id="dashboard" class="screen">
+      <div class="card">
+        <h2>Dashboard</h2>
+        <div class="stats-grid">
+          <article class="stat"><p>Today</p><h3>6 Meetings</h3></article>
+          <article class="stat"><p>Revenue</p><h3>$1,920</h3></article>
+          <article class="stat"><p>Upcoming</p><h3>18 Bookings</h3></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="createMeeting" class="screen">
+      <div class="card">
+        <h2>Create Meeting</h2>
+        <form class="two-col-form">
+          <label>Title<input value="Executive Check-In" /></label>
+          <label>Duration<select><option>15 min</option><option selected>30 min</option></select></label>
+          <label>Location<input value="Google Meet" /></label>
+          <label>Price<input value="$120" /></label>
+          <button class="btn primary" type="button">Save Meeting Type</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="availability" class="screen">
+      <div class="card">
+        <h2>Availability</h2>
+        <div class="availability-grid">
+          <article class="stat"><p>Monday</p><h3>09:00 - 17:00</h3></article>
+          <article class="stat"><p>Tuesday</p><h3>09:00 - 17:00</h3></article>
+          <article class="stat"><p>Wednesday</p><h3>09:00 - 16:00</h3></article>
+          <article class="stat"><p>Thursday</p><h3>09:00 - 17:00</h3></article>
+          <article class="stat"><p>Friday</p><h3>09:00 - 15:00</h3></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="bookingsList" class="screen">
+      <div class="card">
+        <h2>Bookings</h2>
+        <ul class="booking-list">
+          <li><span>Sep 06 · 10:30 AM</span><strong>30 min meeting</strong><small>Paid · Paddle #PDL-2026-0915-884</small></li>
+          <li><span>Sep 06 · 02:00 PM</span><strong>15 min meeting</strong><small>Paid · Paddle #PDL-2026-0915-885</small></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="./script.js"></script>
+</body>
 <!doctype html>
 <html lang="en">
   <head>
