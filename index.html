@@ -1,3 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cons-istant Scheduler</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <h1>Cons-istant</h1>
+        </div>
+        <nav class="screen-nav">
+          <button class="ghost-btn nav-btn active" data-target="flow-screen">Booking Flow</button>
+          <button class="ghost-btn nav-btn" data-target="dashboard-screen">Dashboard</button>
+          <button class="ghost-btn nav-btn" data-target="create-screen">Create Meeting</button>
+          <button class="ghost-btn nav-btn" data-target="availability-screen">Availability</button>
+          <button class="ghost-btn nav-btn" data-target="bookings-screen">Bookings</button>
+        </nav>
+      </header>
+
+      <main>
+        <section id="flow-screen" class="main-screen active">
+          <section id="meeting-type-step" class="flow-step active">
+            <div class="center-card meeting-type-card">
+              <div class="host-profile compact">
+                <img src="https://i.pravatar.cc/96?img=16" alt="Host avatar" />
+                <div>
+                  <h2>Rakshan Kamalakannan</h2>
+                  <p>Choose a meeting type</p>
+                </div>
+              </div>
+              <div class="meeting-options">
+                <button class="meeting-option" data-duration="30">
+                  <div>
+                    <h3>30 min meeting</h3>
+                    <p>Strategy sync and planning</p>
+                  </div>
+                  <span class="duration-badge">30m</span>
+                </button>
+                <button class="meeting-option" data-duration="15">
+                  <div>
+                    <h3>15 min meeting</h3>
+                    <p>Quick check-in and updates</p>
+                  </div>
+                  <span class="duration-badge">15m</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section id="booking-step" class="flow-step">
+            <div class="booking-card">
+              <aside class="booking-left">
+                <img src="https://i.pravatar.cc/96?img=16" alt="Host avatar" />
+                <h3>Rakshan Kamalakannan</h3>
+                <h2 id="meeting-title">30 min meeting</h2>
+                <ul>
+                  <li><span>Duration</span><strong id="meeting-duration">30 min</strong></li>
+                  <li><span>Location</span><strong>Google Meet</strong></li>
+                  <li><span>Timezone</span><strong>UTC+05:30</strong></li>
+                </ul>
+                <button id="back-to-type" class="ghost-btn">Back</button>
+              </aside>
+
+              <div class="booking-center">
+                <div class="calendar-header">
+                  <button id="prev-month" class="icon-btn">&#8592;</button>
+                  <h3 id="month-label"></h3>
+                  <button id="next-month" class="icon-btn">&#8594;</button>
+                </div>
+                <div class="weekday-row">
+                  <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                </div>
+                <div id="calendar-grid" class="calendar-grid"></div>
+              </div>
+
+              <aside class="booking-right">
+                <div class="slots-header">
+                  <h3>Available times</h3>
+                  <button id="time-format-toggle" class="ghost-btn small">12h</button>
+                </div>
+                <div id="slots-list" class="slots-list"></div>
+              </aside>
+            </div>
+          </section>
+
+          <section id="details-step" class="flow-step">
+            <div class="center-card details-card">
+              <h2>Enter your details</h2>
+              <p id="selected-summary"></p>
+              <form id="details-form">
+                <label>
+                  Name
+                  <input type="text" id="guest-name" placeholder="Your full name" required />
+                </label>
+                <label>
+                  Email
+                  <input type="email" id="guest-email" placeholder="you@company.com" required />
+                </label>
+                <div class="actions">
+                  <button type="button" id="back-to-booking" class="ghost-btn">Back</button>
+                  <button type="submit" class="primary-btn">Confirm &amp; Pay</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section id="payment-step" class="flow-step">
+            <div class="center-card payment-card">
+              <h2>Paddle Checkout</h2>
+              <div class="order-summary">
+                <h3>Order summary</h3>
+                <p id="order-summary-text"></p>
+                <p><span>Amount</span><strong>$49.00</strong></p>
+                <p><span>Billing provider</span><strong>Paddle</strong></p>
+              </div>
+              <div class="paddle-box">
+                <p>Secure payment widget placeholder</p>
+                <button id="simulate-payment" class="primary-btn">Pay with Paddle</button>
+              </div>
+            </div>
+          </section>
+
+          <section id="confirmation-step" class="flow-step">
+            <div class="center-card confirmation-card">
+              <div class="success-mark">&#10003;</div>
+              <h2>Booking confirmed</h2>
+              <p id="confirmation-text"></p>
+              <div class="confirmation-meta">
+                <p><span>Google Meet</span><strong>https://meet.google.com/cons-istant-demo</strong></p>
+                <p><span>Paddle ref</span><strong id="payment-reference"></strong></p>
+              </div>
+              <button id="restart-flow" class="ghost-btn">Book another slot</button>
+            </div>
+          </section>
+        </section>
+
+        <section id="dashboard-screen" class="main-screen">
+          <div class="page-grid">
+            <article class="surface-card">
+              <h2>Today’s overview</h2>
+              <p>6 meetings scheduled</p>
+            </article>
+            <article class="surface-card">
+              <h2>Revenue this week</h2>
+              <p>$1,176 via Paddle</p>
+            </article>
+            <article class="surface-card">
+              <h2>Upcoming</h2>
+              <ul class="clean-list">
+                <li>09:30 — 30 min strategy sync</li>
+                <li>11:00 — 15 min check-in</li>
+                <li>15:30 — 30 min roadmap call</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="create-screen" class="main-screen">
+          <div class="surface-card form-card">
+            <h2>Create Meeting</h2>
+            <label>Meeting title<input type="text" value="Client Strategy Session" /></label>
+            <label>Duration
+              <select>
+                <option>30 min</option>
+                <option>15 min</option>
+              </select>
+            </label>
+            <label>Location<input type="text" value="Google Meet" /></label>
+            <button class="primary-btn">Save meeting type</button>
+          </div>
+        </section>
+
+        <section id="availability-screen" class="main-screen">
+          <div class="surface-card">
+            <h2>Availability</h2>
+            <div class="clean-table">
+              <div><span>Monday</span><strong>09:00 - 17:00</strong></div>
+              <div><span>Tuesday</span><strong>09:00 - 17:00</strong></div>
+              <div><span>Wednesday</span><strong>11:00 - 19:00</strong></div>
+              <div><span>Thursday</span><strong>09:00 - 17:00</strong></div>
+              <div><span>Friday</span><strong>09:00 - 15:00</strong></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="bookings-screen" class="main-screen">
+          <div class="surface-card">
+            <h2>Bookings</h2>
+            <div class="clean-table">
+              <div><span>Acme Corp — 30 min</span><strong>Sep 08, 09:30</strong></div>
+              <div><span>Bright Labs — 15 min</span><strong>Sep 08, 11:00</strong></div>
+              <div><span>North Peak — 30 min</span><strong>Sep 09, 15:30</strong></div>
+              <div><span>Orbit Finance — 15 min</span><strong>Sep 10, 10:15</strong></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="./app.js"></script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
