@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian — Premium Scheduling</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%23CBA14C' stroke-width='2'/%3E%3Cpath d='M12 3v18' stroke='%23CBA14C' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --bg:#091320; --bg2:#0C1725; --surface:#101C2D; --raised:#152238; --field:#0B1524;
+  --line:rgba(151,174,204,.09); --line2:rgba(151,174,204,.17);
+  --gold:#CBA14C; --gold-hi:#E0BC6B; --gold-tint:rgba(203,161,76,.09); --gold-line:rgba(203,161,76,.32);
+  --ink:#F2F6FB; --mut:#93A4BA; --faint:#5C6C84; --red:#E07862; --red-t:rgba(224,120,98,.55);
+  --on-gold:#191307;
+  color-scheme:dark;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font:500 15px/1.6 'Manrope',sans-serif;-webkit-font-smoothing:antialiased}
+img{display:block}
+button{font-family:inherit}
+h1,h2,h3,h4{font-family:'Sora',sans-serif;letter-spacing:-.015em;line-height:1.25}
+::selection{background:rgba(203,161,76,.3)}
+:focus-visible{outline:2px solid var(--gold-line);outline-offset:2px;border-radius:4px}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:rgba(151,174,204,.14);border-radius:8px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:rgba(203,161,76,.4)}
+
+/* ============ PRIMITIVES ============ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:700 14px/1 'Manrope';padding:11px 18px;border-radius:10px;border:1px solid transparent;cursor:pointer;transition:.18s;letter-spacing:.01em;white-space:nowrap;text-decoration:none}
+.btn svg{width:15px;height:15px}
+.btn-primary{background:var(--gold);color:var(--on-gold)}
+.btn-primary:hover{background:var(--gold-hi)}
+.btn-secondary{background:transparent;border-color:var(--gold-line);color:var(--gold)}
+.btn-secondary:hover{background:var(--gold-tint);border-color:var(--gold)}
+.btn-ghost{background:none;color:var(--mut)}
+.btn-ghost:hover{color:var(--ink)}
+.btn-lg{width:100%;padding:14px 22px;font-size:15px}
+.btn.sm{padding:8px 14px;font-size:13px}
+.btn:disabled{opacity:.65;cursor:default}
+.icon-btn{width:32px;height:32px;flex:none;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--mut);display:grid;place-items:center;cursor:pointer;transition:.18s;text-decoration:none}
+.icon-btn:hover{color:var(--ink);border-color:var(--gold-line)}
+.icon-btn.sm{width:29px;height:29px}
+.icon-btn.sm svg{width:13px;height:13px}
+.mono-label{font:500 10.5px 'IBM Plex Mono';letter-spacing:.16em;color:var(--faint);text-transform:uppercase}
+.mono-label.gold{color:var(--gold)}
+.link{color:var(--gold);font:600 13px 'Manrope';cursor:pointer;background:none;border:0;text-decoration:none}
+.link:hover{color:var(--gold-hi)}
+.linkbtn{display:inline-flex;gap:6px;align-items:center;color:var(--gold);font:600 13px 'Manrope';background:none;border:0;cursor:pointer;padding:0;margin-top:10px}
+.linkbtn:hover{color:var(--gold-hi)}
+.linkbtn svg{width:13px;height:13px}
+.in{width:100%;background:var(--field);border:1px solid var(--line2);border-radius:10px;padding:11px 14px;color:var(--ink);font:500 14.5px 'Manrope';transition:.18s;color-scheme:dark}
+.in:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-tint)}
+.in::placeholder{color:var(--faint)}
+textarea.in{resize:vertical;min-height:78px}
+.in.mono{font:500 13px 'IBM Plex Mono'}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.fine{font-size:12.5px;color:var(--faint);line-height:1.5}
+.field{margin-bottom:16px}
+.field>label{display:block;font:600 13px 'Manrope';margin-bottom:7px;color:var(--ink)}
+.ferr{display:none;margin-top:6px;font:600 12px 'Manrope';color:#E39280}
+.field.bad .ferr{display:block}
+.field.bad .in{border-color:var(--red-t)}
+.pill{font:500 10.5px 'IBM Plex Mono';letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;border-radius:999px;border:1px solid var(--line2);color:var(--mut);white-space:nowrap}
+.pill-gold{color:var(--gold);border-color:var(--gold-line);background:var(--gold-tint)}
+.switch{position:relative;width:38px;height:22px;flex:none;display:inline-block}
+.switch input{opacity:0;position:absolute;inset:0;cursor:pointer}
+.switch span{position:absolute;inset:0;background:#223049;border:1px solid var(--line2);border-radius:999px;transition:.2s;pointer-events:none}
+.switch span::after{content:'';position:absolute;left:2.5px;top:2.5px;width:15px;height:15px;border-radius:50%;background:var(--mut);transition:.2s}
+.switch input:checked+span{background:var(--gold);border-color:var(--gold)}
+.switch input:checked+span::after{left:18px;background:var(--on-gold)}
+.brand{display:inline-flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;font:600 16.5px 'Sora';letter-spacing:-.01em}
+.brand svg{width:20px;height:20px;flex:none}
+
+/* ============ CHROME ============ */
+#pubBar{position:fixed;top:0;left:0;right:0;height:64px;background:rgba(9,19,32,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);z-index:70}
+#pubBar .pin{max-width:1160px;margin:0 auto;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 22px}
+body.app #pubBar{display:none}
+#sidebar{position:fixed;left:0;top:0;bottom:0;width:250px;background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 14px 14px;z-index:90;transition:transform .28s cubic-bezier(.2,.8,.3,1)}
+.sb-top{padding:4px 10px 18px;border-bottom:1px solid var(--line);margin-bottom:14px}
+#sidebar nav{display:flex;flex-direction:column;gap:3px}
+.snav{position:relative;display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;color:var(--mut);font:600 14px 'Manrope';cursor:pointer;border:0;background:none;width:100%;text-align:left;transition:.15s}
+.snav svg{width:17px;height:17px}
+.snav:hover{color:var(--ink);background:rgba(255,255,255,.03)}
+.snav.on{color:var(--ink);background:var(--gold-tint)}
+.snav.on svg{color:var(--gold)}
+.snav.on::before{content:'';position:absolute;left:0;top:22%;bottom:22%;width:2.5px;border-radius:3px;background:var(--gold)}
+.snav-badge{margin-left:auto;font:500 10.5px 'IBM Plex Mono';color:var(--gold);background:var(--gold-tint);border:1px solid var(--gold-line);border-radius:999px;padding:1px 8px}
+.sb-cta{padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:12px}
+.sb-cta .btn{width:100%}
+.sb-bottom{margin-top:auto;display:flex;flex-direction:column;gap:2px}
+.sb-user{display:flex;align-items:center;gap:11px;padding:12px 8px 4px;margin-top:8px;border-top:1px solid var(--line)}
+.sb-user img{width:34px;height:34px;border-radius:50%;object-fit:cover}
+.sb-user b{font:600 13px 'Manrope';display:block;line-height:1.3}
+.sb-user span{font-size:11.5px;color:var(--faint)}
+#wipe{margin:8px 8px 0;padding:0;background:none;border:0;color:var(--faint);font:600 11.5px 'Manrope';cursor:pointer;text-align:left}
+#wipe:hover{color:var(--red)}
+#mobileBar{display:none;position:fixed;top:0;left:0;right:0;height:58px;background:rgba(9,19,32,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);z-index:80;align-items:center;padding:0 14px;gap:10px}
+#drawerBk{position:fixed;inset:0;background:rgba(4,8,15,.6);backdrop-filter:blur(3px);z-index:85;display:none}
+#drawerBk.show{display:block}
+body.public #sidebar,body.public #mobileBar,body.public #drawerBk{display:none}
+body.public main{padding-top:64px}
+body.app main{margin-left:250px;padding:32px 40px 70px;max-width:1280px}
+main .screen{display:none}
+main .screen.active{display:block;animation:screenIn .35s cubic-bezier(.2,.7,.3,1)}
+@keyframes screenIn{from{opacity:0;transform:translateY(10px)}}
+
+/* ============ PUBLIC: HOME ============ */
+.pub-wrap{max-width:660px;margin:0 auto;padding:0 22px}
+.profile-head{text-align:center;padding-top:48px}
+.avatar-xl{width:78px;height:78px;border-radius:50%;object-fit:cover;margin:0 auto 18px;box-shadow:0 0 0 3px var(--bg),0 0 0 4.5px var(--gold-line)}
+.profile-head h1{font-size:28px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:9px}
+.vbadge{color:var(--gold);display:inline-flex}
+.vbadge svg{width:19px;height:19px}
+.role{color:var(--mut);font-size:15px;margin-top:6px}
+.bio{color:var(--faint);font-size:14px;max-width:480px;margin:12px auto 0}
+.stat-line{margin-top:18px;font:500 10.5px 'IBM Plex Mono';letter-spacing:.14em;color:var(--faint);text-transform:uppercase}
+.stat-line b{color:var(--gold);font-weight:500;padding:0 8px}
+.meet-list{max-width:560px;margin:36px auto 0;display:flex;flex-direction:column;gap:12px}
+.meet-card{display:flex;align-items:center;gap:16px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:17px 18px;cursor:pointer;transition:.2s;width:100%}
+.meet-card:hover{border-color:var(--gold-line);transform:translateY(-2px)}
+.meet-ic{width:42px;height:42px;border-radius:50%;background:var(--gold-tint);border:1px solid var(--gold-line);display:grid;place-items:center;color:var(--gold);flex:none}
+.meet-ic svg{width:18px;height:18px}
+.meet-body{flex:1;min-width:0}
+.meet-title{font:600 15.5px 'Sora';display:block}
+.meet-meta{display:flex;align-items:center;gap:6px;color:var(--mut);font-size:13px;margin-top:4px;flex-wrap:wrap}
+.meet-meta svg{width:13px;height:13px;color:var(--faint)}
+.dur-badge{font:500 10.5px 'IBM Plex Mono';letter-spacing:.12em;color:var(--gold);border:1px solid var(--gold-line);background:var(--gold-tint);padding:5px 10px;border-radius:999px;flex:none}
+.meet-arrow{color:var(--faint);flex:none;display:flex;transition:.2s}
+.meet-arrow svg{width:16px;height:16px}
+.meet-card:hover .meet-arrow{color:var(--gold);transform:translateX(3px)}
+.pub-foot{margin:60px auto 30px;text-align:center;font:500 10px 'IBM Plex Mono';letter-spacing:.18em;color:var(--faint);text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.pub-foot svg{width:11px;height:11px}
+
+/* ============ BOOKING SHELL ============ */
+.shell{max-width:1080px;margin:24px auto 0;padding:0 20px}
+.cal-top{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.crumbs{display:flex;align-items:center;gap:7px;font:500 13px 'Manrope';color:var(--mut);flex-wrap:wrap}
+.crumbs svg{width:12px;height:12px;color:var(--faint)}
+.crumbs b{color:var(--ink);font-weight:600}
+.cal-card{display:grid;grid-template-columns:272px minmax(0,1fr) 302px;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;min-height:566px}
+.cal-card.two{grid-template-columns:272px minmax(0,1fr)}
+.cal-info{padding:28px 24px;border-right:1px solid var(--line);min-width:0}
+.avatar-md{width:64px;height:64px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--gold-line)}
+.info-name{font:600 17px 'Sora';margin-top:16px}
+.info-sub{color:var(--mut);font-size:14px;margin-top:3px}
+.cal-meta{list-style:none;margin-top:18px}
+.cal-meta li{display:flex;align-items:center;gap:10px;margin:10px 0;color:var(--mut);font-size:13.5px}
+.cal-meta svg{width:15px;height:15px;color:var(--faint);flex:none}
+.cal-meta .goldtxt{color:var(--gold);font-weight:600}
+.cal-desc{color:var(--faint);font-size:13px;line-height:1.6;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.cal-mid{padding:26px 30px;min-width:0}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.cal-head h4{font-size:16px;font-weight:600}
+.cal-nav{display:flex;gap:6px}
+.cal-week{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font:500 10px 'IBM Plex Mono';letter-spacing:.12em;color:var(--faint);margin-bottom:6px}
+.cal-week span{padding:6px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.day{height:38px;border-radius:10px;font:600 13.5px 'Manrope';color:var(--ink);cursor:pointer;border:1px solid transparent;background:none;font-variant-numeric:tabular-nums;transition:.15s}
+.day.blank{visibility:hidden}
+.day:hover:not(:disabled){border-color:var(--gold-line);background:var(--gold-tint)}
+.day.dis{color:#3C4A5E;cursor:default}
+.day.today{border-color:var(--gold-line)}
+.day.sel{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
+.cal-right{border-left:1px solid var(--line);padding:22px 20px;display:flex;flex-direction:column;min-width:0}
+.slots-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
+.slots-head h4{font-size:15.5px;font-weight:600}
+#slotCount{display:block;margin-top:4px}
+#slotCount.gold{color:var(--gold)}
+.seg{display:inline-flex;background:var(--bg2);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px;flex:none}
+.seg button{font:600 11.5px 'Manrope';padding:4px 10px;border-radius:6px;color:var(--mut);border:0;background:none;cursor:pointer;transition:.15s}
+.seg button.on{background:var(--gold);color:var(--on-gold)}
+.seg.lg button{padding:8px 18px;font-size:13.5px}
+.gchk-row{margin:-4px 0 12px}
+.gchk{width:100%;display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid var(--line2);border-radius:10px;background:none;color:var(--mut);font:600 12.5px 'Manrope';cursor:pointer;transition:.18s;text-align:left}
+.gchk:hover{border-color:var(--gold-line);color:var(--ink)}
+.gchk svg{width:14px;height:14px;flex:none}
+.gchk .gchk-on{display:none;margin-left:auto;color:var(--gold)}
+.gchk.on{border-color:var(--gold-line);background:var(--gold-tint);color:var(--gold)}
+.gchk.on .gchk-on{display:block}
+.gchk.loading{opacity:.65;pointer-events:none}
+.gchk.loading .gchk-base{display:none}
+.gchk.loading .gchk-spin{display:inline-block}
+.gchk-spin{display:none;width:13px;height:13px;border:2px solid rgba(203,161,76,.25);border-top-color:var(--gold);border-radius:50%;animation:rot .7s linear infinite;flex:none}
+@keyframes rot{to{transform:rotate(1turn)}}
+.spin{width:15px;height:15px;border:2px solid rgba(25,19,7,.25);border-top-color:var(--on-gold);border-radius:50%;animation:rot .7s linear infinite;display:inline-block;flex:none}
+.slots-list{display:flex;flex-direction:column;gap:8px;overflow:auto;max-height:320px;padding-right:5px;margin-right:-5px}
+.slot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px;border:1px solid var(--line2);border-radius:10px;background:transparent;font:600 14px 'Manrope';color:var(--ink);cursor:pointer;transition:.15s;font-variant-numeric:tabular-nums;animation:slotIn .32s cubic-bezier(.2,.7,.3,1) both}
+@keyframes slotIn{from{opacity:0;transform:translateY(7px)}}
+.slot:hover{border-color:var(--gold-line);background:var(--gold-tint)}
+.empty{margin:auto;text-align:center;color:var(--faint);padding:44px 8px}
+.empty .eic{width:46px;height:46px;border-radius:50%;background:var(--gold-tint);border:1px solid var(--gold-line);display:grid;place-items:center;margin:0 auto 13px;color:var(--gold)}
+.empty .eic svg{width:19px;height:19px}
+.empty p{font-size:13.5px;max-width:200px;margin:0 auto;line-height:1.5}
+.slots-foot{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--mut)}
+.slots-foot svg{width:13px;height:13px;color:var(--faint);flex:none}
+.slots-cta{display:none}
+.slots-cta.show{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);animation:ctaIn .25s cubic-bezier(.2,.7,.3,1)}
+@keyframes ctaIn{from{opacity:0;transform:translateY(6px)}}
+#ctaTime{font:600 15px 'Sora';font-variant-numeric:tabular-nums}
+.shell .pub-foot{margin:24px 0 34px}
+
+/* ============ DETAILS ============ */
+.chosen{margin-top:20px;padding:16px;border:1px solid var(--gold-line);background:var(--gold-tint);border-radius:12px}
+.chosen strong{font:600 15px 'Sora';display:block;margin-top:8px}
+.chosen em{font-style:normal;display:block;color:var(--mut);font-size:13.5px;margin-top:3px;font-variant-numeric:tabular-nums}
+.det-form{padding:32px 36px;min-width:0}
+.det-form h3{font-size:17px;margin-bottom:22px}
+.price-row{display:flex;justify-content:space-between;align-items:center;padding:14px 2px;border-top:1px solid var(--line);margin-top:8px}
+.price-row span{font:600 14px 'Manrope';color:var(--mut)}
+.price-row b{font:600 19px 'Sora';color:var(--gold)}
+.pay-note{display:flex;gap:10px;align-items:flex-start;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--mut);margin-top:18px}
+.pay-note svg{width:15px;height:15px;color:var(--gold);flex:none;margin-top:2px}
+.det-form .btn-lg{margin-top:14px}
+.det-form .fine{margin-top:12px;text-align:center}
+
+/* ============ SUCCESS ============ */
+.ok-wrap{max-width:560px;margin:56px auto 0;padding:0 22px;text-align:center}
+.ok-mark{width:80px;height:80px;margin:0 auto 24px;animation:pop2 .45s cubic-bezier(.2,.8,.3,1.2)}
+@keyframes pop2{from{transform:scale(.7);opacity:0}}
+.ok-ring{stroke-dasharray:184;stroke-dashoffset:184;animation:draw .7s .1s ease forwards}
+.ok-tick{stroke-dasharray:44;stroke-dashoffset:44;animation:draw .4s .65s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.ok-wrap h1{font-size:26px}
+.ok-sub{color:var(--mut);font-size:14.5px;margin-top:10px}
+.ok-sub b{color:var(--ink)}
+.ok-card{margin-top:30px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 22px}
+.ok-row{display:flex;gap:14px;align-items:flex-start;padding:15px 0;border-bottom:1px solid var(--line)}
+.ok-row:last-child{border-bottom:0}
+.ok-row>svg{width:16px;height:16px;color:var(--gold);margin-top:3px;flex:none}
+.ok-row .k{display:block;font:500 10px 'IBM Plex Mono';letter-spacing:.16em;color:var(--faint);text-transform:uppercase;margin-bottom:4px}
+.ok-row .v{font-size:14.5px;font-weight:600}
+.ok-hint{display:block;font-size:12.5px;color:var(--mut);margin-top:2px;line-height:1.5}
+.meet-chip{display:inline-flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;padding:7px 8px 7px 12px;font:500 13px 'IBM Plex Mono';color:var(--gold);max-width:100%;overflow:hidden}
+.ok-actions{display:flex;gap:12px;justify-content:center;margin-top:28px;flex-wrap:wrap}
+.ok-links{margin-top:18px;display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+
+/* ============ RESPONSIVE ============ */
+@media(max-width:1020px){
+  .cal-card{grid-template-columns:250px minmax(0,1fr)}
+  .cal-right{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}
+  .slots-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));max-height:none}
+}
+@media(max-width:920px){
+  body.app main{margin-left:0;padding:76px 18px 60px}
+  #mobileBar{display:flex}
+  #sidebar{transform:translateX(-105%);width:268px}
+  #sidebar.open{transform:none;box-shadow:30px 0 60px rgba(0,0,0,.4)}
+}
+@media(max-width:760px){
+  .cal-card,.cal-card.two{grid-template-columns:1fr;min-height:0}
+  .cal-info{border-right:0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;padding:20px}
+  .cal-info .avatar-md{width:52px;height:52px;margin:0}
+  .info-name{margin-top:0;font-size:15.5px;flex:1}
+  .cal-meta{width:100%;display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:10px}
+  .cal-meta li{margin:2px 0}
+  .cal-desc{display:none}
+  .cal-mid{padding:20px 18px}
+  .day{height:36px;font-size:13px}
+  .det-form{padding:24px 20px}
+}
+</style>
+</head>
+<body class="public">
+
+<!-- ══════ PUBLIC TOP BAR ══════ -->
+<header id="pubBar">
+  <div class="pin">
+    <a class="brand" href="#/home" data-nav="home">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#CBA14C" stroke-width="1.7"/><path d="M12 3v18" stroke="#CBA14C" stroke-width="1.7"/><circle cx="12" cy="8.4" r="2.1" fill="#CBA14C"/></svg>
+      Meridian
+    </a>
+  </div>
+</header>
+
+<main>
+  <!-- ══════ 1 · MEETING TYPE SELECTION ══════ -->
+  <section class="screen active" id="screen-home">
+    <div class="pub-wrap">
+      <div class="profile-head">
+        <img class="avatar-xl" src="https://picsum.photos/seed/meridian-host/160/160.jpg" alt="Rakshan Kamalakannan">
+        <h1>Rakshan Kamalakannan <span class="vbadge" title="Identity verified"><i data-lucide="badge-check"></i></span></h1>
+        <p class="role">Founder &amp; Principal Consultant · Meridian Studio</p>
+        <p class="bio">I keep a limited number of open slots each week for strategy sessions, technical reviews and advisory calls. Every booking lands on Google Calendar with a live Google Meet link.</p>
+        <p class="stat-line">240+ sessions hosted<b>·</b>calendar synced with google<b>·</b>payments secured by paddle</p>
+      </div>
+      <div class="meet-list" id="meetList"></div>
+      <div class="pub-foot"><i data-lucide="lock"></i>Powered by Meridian · Payments by Paddle · Calendar by Google</div>
+    </div>
+  </section>
+
+  <!-- ══════ 2 · BOOKING PAGE ══════ -->
+  <section class="screen" id="screen-booking">
+    <div class="shell">
+      <div class="cal-top">
+        <button class="icon-btn" data-nav="home" aria-label="Back"><i data-lucide="arrow-left"></i></button>
+        <div class="crumbs">Rakshan Kamalakannan <i data-lucide="chevron-right"></i> <b id="crumbM">30 min meeting</b></div>
+      </div>
+      <div class="cal-card">
+        <aside class="cal-info">
+          <img class="avatar-md" src="https://picsum.photos/seed/meridian-host/128/128.jpg" alt="">
+          <div class="info-name">Rakshan Kamalakannan</div>
+          <div class="info-sub">Founder, Meridian Studio</div>
+          <ul class="cal-meta">
+            <li><i data-lucide="clock"></i><span id="ifDur">30 min</span></li>
+            <li><i data-lucide="video"></i><span id="ifLoc">Google Meet</span></li>
+            <li><i data-lucide="globe"></i><span class="tz-live"></span></li>
+            <li><i data-lucide="credit-card"></i><span class="goldtxt" id="ifPrice">$45.00 · paid via Paddle</span></li>
+          </ul>
+          <p class="cal-desc" id="ifDesc"></p>
+        </aside>
+        <div class="cal-mid">
+          <div class="cal-head">
+            <h4 id="calLabel">Month</h4>
+            <div class="cal-nav">
+              <button class="icon-btn" id="calPrev" aria-label="Previous month"><i data-lucide="chevron-left"></i></button>
+              <button class="icon-btn" id="calNext" aria-label="Next month"><i data-lucide="chevron-right"></i></button>
+            </div>
+          </div>
+          <div class="cal-week"><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span></div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div class="cal-right">
+          <div class="slots-head">
+            <div><h4 id="slotDate">Select a day</h4><span class="mono-label" id="slotCount"></span></div>
+            <div class="seg" id="fmtToggle">
+              <button data-fmt="12" class="on" type="button">12h</button>
+              <button data-fmt="24" type="button">24h</button>
+            </div>
+          </div>
+          <div class="gchk-row">
+            <button type="button" class="gchk" id="btnGChk">
+              <i data-lucide="calendar-check" class="gchk-base"></i><span class="gchk-spin"></span>
+              <span id="gChkLbl">Avoid conflicts with my Google Calendar</span>
+              <i data-lucide="check" class="gchk-on"></i>
+            </button>
+          </div>
+          <div class="slots-list" id="slotsList"></div>
+          <div class="slots-foot"><i data-lucide="globe"></i><span class="tz-live"></span></div>
+          <div class="slots-cta" id="slotsCta">
+            <span id="ctaTime"></span>
+            <button class="btn btn-primary sm" id="btnConfirmSlot">Confirm<i data-lucide="arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="pub-foot"><i data-lucide="lock"></i>Powered by Meridian · Payments by Paddle · Calendar by Google</div>
+    </div>
+  </section>
+
+  <!-- ══════ 3 · DETAILS FORM ══════ -->
+  <section class="screen" id="screen-details">
+    <div class="shell">
+      <div class="cal-top">
+        <button class="icon-btn" data-nav="booking" aria-label="Back"><i data-lucide="arrow-left"></i></button>
+        <div class="crumbs">Rakshan Kamalakannan <i data-lucide="chevron-right"></i> <span id="crumbM2">30 min meeting</span> <i data-lucide="chevron-right"></i> <b>Confirm details</b></div>
+      </div>
+      <div class="cal-card two">
+        <aside class="cal-info">
+          <img class="avatar-md" src="https://picsum.photos/seed/meridian-host/128/128.jpg" alt="">
+          <div class="info-name">Rakshan Kamalakannan</div>
+          <div class="info-sub" id="dTitle">30 min meeting</div>
+          <div class="chosen">
+            <span class="mono-label gold">Your selection</span>
+            <strong id="chDate">—</strong>
+            <em id="chTime">—</em>
+            <button class="linkbtn" data-nav="booking"><i data-lucide="chevron-left"></i>Change date or time</button>
+          </div>
+          <p class="cal-desc">After payment, add the session to your Google Calendar — Google generates the Meet link and emails the invite to the host automatically.</p>
+        </aside>
+        <div class="det-form">
+          <h3>Enter your details</h3>
+          <div class="field" id="fwName">
+            <label for="fName">Full name</label>
+            <input class="in" id="fName" placeholder="Jane Appleseed" autocomplete="name">
+            <span class="ferr">Please enter your full name.</span>
+          </div>
+          <div class="field" id="fwEmail">
+            <label for="fEmail">Email address</label>
+            <input class="in" id="fEmail" type="email" placeholder="jane@company.com" autocomplete="email">
+            <span class="ferr">Please enter a valid email address.</span>
+          </div>
+          <div class="field">
+            <label for="fNotes">Anything we should know? <span style="color:var(--faint);font-weight:500">(optional)</span></label>
+            <textarea class="in" id="fNotes" placeholder="Share context, links or an agenda…"></textarea>
+          </div>
+          <div class="pay-note"><i data-lucide="lock"></i><span id="detNote"></span></div>
+          <div class="price-row"><span id="detLabel">30 min meeting</span><b id="detPrice">$45.00</b></div>
+          <button class="btn btn-primary btn-lg" id="btnPay"><i data-lucide="lock"></i><span id="btnPayLabel">Confirm &amp; Pay</span></button>
+          <p class="fine">Card details are entered on Paddle's secure hosted checkout — never on this page.</p>
+        </div>
+      </div>
+      <div class="pub-foot"><i data-lucide="lock"></i>Powered by Meridian · Payments by Paddle · Calendar by Google</div>
+    </div>
+  </section>
+
+  <!-- ══════ 5 · CONFIRMATION ══════ -->
+  <section class="screen" id="screen-success">
+    <div class="ok-wrap">
+      <div class="ok-mark">
+        <svg viewBox="0 0 64 64" width="80" height="80">
+          <circle class="ok-ring" cx="32" cy="32" r="29" fill="none" stroke="#CBA14C" stroke-width="2.5" stroke-linecap="round" transform="rotate(-90 32 32)"/>
+          <path class="ok-tick" d="M20 33.5 L28.5 42 L44 24.5" fill="none" stroke="#CBA14C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="mono-label gold" id="okTop">Payment received · Paddle</span>
+      <h1 style="margin-top:10px">Booking confirmed</h1>
+      <p class="ok-sub">Add it to your Google Calendar and Google will generate the Meet link and invite the host, <b id="okName">—</b>.</p>
+      <div class="ok-card">
+        <div class="ok-row"><i data-lucide="calendar-days"></i><div><span class="k">When</span><span class="v" id="okWhen">—</span></div></div>
+        <div class="ok-row"><i data-lucide="video"></i><div>
+          <span class="k">Where — Google Meet</span>
+          <span class="meet-chip" id="okMeetWrap" hidden><span id="okMeet">—</span><button class="icon-btn sm" id="btnCopyMeet" aria-label="Copy Meet link"><i data-lucide="copy"></i></button></span>
+          <span class="ok-hint" id="okMeetHint">—</span>
+        </div></div>
+        <div class="ok-row"><i data-lucide="user"></i><div><span class="k">Host</span><span class="v">Rakshan Kamalakannan<small>Founder &amp; Principal Consultant</small></span></div></div>
+        <div class="ok-row"><i data-lucide="credit-card"></i><div><span class="k">Payment</span><span class="v" id="okPay">—</span></div></div>
+      </div>
+      <div class="ok-actions">
+        <button class="btn btn-primary" id="btnGcal"><i data-lucide="calendar-plus"></i><span id="btnGcalLbl">Add to Google Calendar</span></button>
+        <a class="btn btn-secondary" id="btnOutlook" target="_blank" rel="noopener"><i data-lucide="external-link"></i>Outlook</a>
+        <button class="btn btn-ghost" id="btnIcs"><i data-lucide="download"></i>.ics file</button>
+      </div>
+      <div class="ok-links">
+        <a class="link" id="btnOpenEvent" target="_blank" rel="noopener" hidden>Open event in Google Calendar</a>
+        <button class="link" data-nav="home">Book another meeting</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="toasts"></div>
+
+<script>
+(()=>{ 'use strict';
+const CONFIG={
+  PADDLE_CLIENT_TOKEN:'',
+  PADDLE_PRICE_ID_30:'',
+  PADDLE_PRICE_ID_15:'',
+  GOOGLE_CLIENT_ID:'',
+  HOST_EMAIL:'',
+  BOOKING_URL:'meridian.app/rakshan'
+};
+
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const pad=n=>String(n).padStart(2,'0');
+const icons=()=>{ if(window.lucide) lucide.createIcons(); };
+const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const WDF=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONF=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const dMedC=d=>`${WD[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}`;
+const dLong=d=>`${WDF[d.getDay()]}, ${d.getDate()} ${MONF[d.getMonth()]}`;
+const money=n=>n==null?'—':('$'+n.toFixed(2));
+const slug=s=>s.toLowerCase().trim().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+const ref=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const gcalFmt=d=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+const TZ=(Intl.DateTimeFormat().resolvedOptions().timeZone)||'UTC';
+function tzOff(){const o=-new Date().getTimezoneOffset(),s=o>=0?'+':'−',h=Math.floor(Math.abs(o)/60),m=Math.abs(o)%60;return`GMT${s}${h}${m?':'+pad(m):''}`;}
+$$('.tz-live').forEach(el=>el.textContent=`${TZ} (${tzOff()})`);
+
+const LS_KEY='meridian.prod.v3';
+const DEFAULT_EVENTS=[
+  {id:'e15',title:'15 min meeting',mins:15,paid:true,price:25,icon:'zap',location:'Google Meet',
+   desc:'A quick, high-signal sync for sharp questions and fast answers. Perfect for follow-ups and rapid decisions.'},
+  {id:'e30',title:'30 min meeting',mins:30,paid:true,price:45,icon:'video',location:'Google Meet',
+   desc:'A focused deep-dive — product strategy, roadmap reviews or technical direction. Come with an agenda; leave with decisions.'}
+];
+const DEF_AVAIL={0:[],1:[{s:540,e:1020}],2:[{s:540,e:1020}],3:[{s:540,e:1020}],4:[{s:540,e:1020}],5:[{s:540,e:1020}],6:[]};
+let data;
+try{ data=JSON.parse(localStorage.getItem(LS_KEY))||null; }catch(e){ data=null; }
+if(!data){
+  data={eventTypes:DEFAULT_EVENTS.map(e=>({...e})),avail:JSON.parse(JSON.stringify(DEF_AVAIL)),bookings:[],prefs:{fmt24:false},gcal:null};
+  persist();
+}
+function persist(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(data)); }catch(e){} }
+const getEvent=id=>data.eventTypes.find(e=>e.id===id)||null;
+
+let viewMonth=null;
+const state={eventId:'e30',date:null,slot:null,form:{name:'',email:'',notes:''},lastRef:null};
+const AVAIL=data.avail;
+
+function fmtTime(mins){
+  const h=Math.floor(mins/60),m=mins%60;
+  if(data.prefs.fmt24)return`${pad(h)}:${pad(m)}`;
+  return`${h%12||12}:${pad(m)}${h>=12?'pm':'am'}`;
+}
+
+function toast(msg,ic='check'){
+  const t=document.createElement('div');t.className='toast';t.style.cssText=`position:fixed;right:22px;bottom:22px;background:var(--raised);border:1px solid var(--line2);border-left:3px solid var(--gold);border-radius:10px;padding:14px 16px;font:600 13.5px Manrope;opacity:0;transform:translateY(8px);transition:.28s;z-index:200`;
+  t.innerHTML=`<i data-lucide="${ic}"></i> <span>${msg}</span>`;
+  document.getElementById('toasts').appendChild(t);
+  icons();
+  requestAnimationFrame(()=>t.style.transform='none'&&(t.style.opacity='1'));
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(6px)';setTimeout(()=>t.remove(),320);},4200);
+}
+
+function renderHome(){
+  $('#meetList').innerHTML=data.eventTypes.map(ev=>`
+    <button class="meet-card" data-ev="${ev.id}" style="all:revert-layer">
+      <span class="meet-ic"><i data-lucide="${ev.icon||'video'}"></i></span>
+      <span class="meet-body">
+        <span class="meet-title">${ev.title}</span>
+        <span class="meet-meta"><i data-lucide="globe"></i>${ev.location}</span>
+        <span class="meet-meta"><i data-lucide="credit-card"></i>$${ev.price} · paid</span>
+      </span>
+      <span class="dur-badge">${ev.mins} MIN</span>
+      <span class="meet-arrow"><i data-lucide="arrow-right"></i></span>
+    </button>`).join('');
+  icons();
+}
+
+function slotTime(m){return`${fmtTime(m)}`;}
+function slotsFor(dt,dur){
+  const ivs=AVAIL[dt.getDay()]||[];if(!ivs.length)return[];
+  let out=[];
+  ivs.forEach(({s,e})=>{for(let m=s;m+dur<=e;m+=dur)out.push(m);});
+  return out.sort((a,b)=>a-b);
+}
+
+function renderCal(){
+  const y=viewMonth.getFullYear(),mo=viewMonth.getMonth();
+  $('#calLabel').textContent=`${MONF[mo]} ${y}`;
+  const first=(new Date(y,mo,1).getDay()+6)%7,dim=new Date(y,mo+1,0).getDate();
+  const t0=new Date();t0.setHours(0,0,0,0);
+  const today=new Date(),ev=getEvent(state.eventId);
+  let html='';
+  for(let i=0;i<first;i++)html+='<span class="day blank"></span>';
+  for(let d=1;d<=dim;d++){
+    const dt=new Date(y,mo,d);
+    const dis=dt<t0||slotsFor(dt,ev.mins).length===0;
+    const sel=state.date&&dt.toDateString()===state.date.toDateString();
+    const tod=dt.toDateString()===today.toDateString();
+    html+=`<button type="button" class="day${dis?' dis':''}${sel?' sel':''}${(tod&&!sel)?' today':''}" data-d="${d}"${dis?' disabled':''}>${d}</button>`;
+  }
+  $('#calGrid').innerHTML=html;
+}
+
+function renderSlots(){
+  const ev=getEvent(state.eventId);
+  const head=$('#slotDate'),cnt=$('#slotCount'),list=$('#slotsList');
+  $('#slotsCta').classList.remove('show');
+  if(!state.date){
+    head.textContent='Select a day';cnt.textContent='';
+    list.innerHTML=`<div class="empty"><span class="eic"><i data-lucide="calendar-days"></i></span><p>Pick an available day to see open times.</p></div>`;
+    icons();return;
+  }
+  head.textContent=dMedC(state.date);
+  const slots=slotsFor(state.date,ev.mins);
+  cnt.textContent=slots.length?`${slots.length} slots available`:'no slots available';
+  cnt.classList.toggle('gold',slots.length>0);
+  if(!slots.length){
+    list.innerHTML=`<div class="empty"><span class="eic"><i data-lucide="clock"></i></span><p>No open times on this day — try another.</p></div>`;
+    icons();return;
+  }
+  list.innerHTML=slots.map((m,i)=>`<button type="button" class="slot" data-m="${m}" style="animation-delay:${Math.min(i*24,420)}ms">${slotTime(m)}</button>`).join('');
+  icons();
+}
+
+document.addEventListener('click',e=>{
+  const c=e.target.closest('[data-copy]');
+  if(c){const t=c.dataset.copy;if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>toast(c.dataset.msg||'Copied'));return;}
+  const m=e.target.closest('.meet-card[data-ev]');
+  if(m){state.eventId=m.dataset.ev;go('booking');return;}
+  const b=e.target.closest('[data-nav]');
+  if(b){go(b.dataset.nav);return;}
+});
+
+$('#calPrev').addEventListener('click',()=>{viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth()-1,1);renderCal();renderSlots();});
+$('#calNext').addEventListener('click',()=>{viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth()+1,1);renderCal();renderSlots();});
+$('#calGrid').addEventListener('click',e=>{
+  const day=e.target.closest('.day[data-d]');if(!day||day.disabled)return;
+  state.date=new Date(viewMonth.getFullYear(),viewMonth.getMonth(),+day.dataset.d);
+  state.slot=null;
+  $$('#calGrid .day').forEach(x=>x.classList.remove('sel'));day.classList.add('sel');
+  renderSlots();
+});
+$('#slotsList').addEventListener('click',e=>{
+  const slot=e.target.closest('.slot');if(!slot)return;
+  state.slot=+slot.dataset.m;
+  $$('#slotsList .slot').forEach(x=>x.classList.remove('sel'));slot.classList.add('sel');
+  $('#ctaTime').textContent=slotTime(state.slot);
+  $('#slotsCta').classList.add('show');
+});
+$('#fmtToggle').addEventListener('click',e=>{
+  const btn=e.target.closest('button[data-fmt]');if(!btn)return;
+  data.prefs.fmt24=btn.dataset.fmt==='24';persist();
+  $$('#fmtToggle button').forEach(b=>b.classList.toggle('on',(b.dataset.fmt==='24')===data.prefs.fmt24));
+  renderSlots();
+});
+$('#btnConfirmSlot').addEventListener('click',()=>{if(state.slot!==null)go('details');});
+
+const bkWhen=b=>new Date(b.whenISO);
+function renderDetails(){
+  const ev=getEvent(state.eventId);
+  $('#crumbM2').textContent=ev.title;
+  $('#chDate').textContent=dLong(state.date);
+  $('#chTime').textContent=`${fmtTime(state.slot)} · ${ev.mins} min · ${TZ}`;
+  $('#dTitle').textContent=ev.title;$('#detLabel').textContent=ev.title;
+  $('#detPrice').textContent=money(ev.price);
+  $('#detNote').textContent=`This ${ev.mins}-minute session is $${ev.price}. The next step opens Paddle's secure checkout.`;
+  $('#fName').value=state.form.name;$('#fEmail').value=state.form.email;$('#fNotes').value=state.form.notes;
+  $('#fwName').classList.remove('bad');$('#fwEmail').classList.remove('bad');
+}
+
+['fName','fEmail','fNotes'].forEach(id=>$('#'+id).addEventListener('input',e=>{
+  state.form[{fName:'name',fEmail:'email',fNotes:'notes'}[id]]=e.target.value;
+}));
+
+$('#btnPay').addEventListener('click',()=>{
+  let ok=true;
+  const bad=(w,c)=>{$(w).classList.toggle('bad',c);if(c)ok=false;};
+  bad('#fwName',state.form.name.trim().length<2);
+  bad('#fwEmail',!/^\S+@\S+\.\S+$/.test(state.form.email.trim()));
+  if(!ok)return;
+  const ev=getEvent(state.eventId);
+  finalizeBooking({paid:false});
+});
+
+function finalizeBooking({paid}){
+  if(!state.date||state.slot===null)return;
+  const ev=getEvent(state.eventId);
+  const when=new Date(state.date.getFullYear(),state.date.getMonth(),state.date.getDate(),Math.floor(state.slot/60),state.slot%60);
+  const b={
+    id:ref(),eventId:ev.id,eventTitle:ev.title,mins:ev.mins,price:ev.price,paid,
+    name:state.form.name.trim(),email:state.form.email.trim(),notes:state.form.notes.trim(),
+    whenISO:when.toISOString(),tz:TZ,status:paid?'Confirmed':'Unpaid (test)',
+    txn:null,meet:'',gcalId:null,gcalUrl:null,location:ev.location
+  };
+  data.bookings.unshift(b);persist();
+  state.lastRef=b.id;state.slot=null;state.date=null;
+  go('success');
+}
+
+const getBooking=id=>data.bookings.find(b=>b.id===id);
+
+function renderSuccess(){
+  const b=getBooking(state.lastRef);if(!b)return;
+  const ev=getEvent(b.eventId);
+  const s=bkWhen(b),end=new Date(s.getTime()+b.mins*60000);
+  $('#okName').textContent=b.name;
+  $('#okWhen').textContent=`${dLong(s)} · ${slotTime(s.getHours()*60+s.getMinutes())} – ${slotTime(end.getHours()*60+end.getMinutes())} (${TZ})`;
+  $('#okMeetHint').textContent='The meeting link will be shared by the host.';
+  $('#okPay').textContent=`Paddle · $${b.price} paid`;
+}
+
+function go(r){
+  $$('.screen').forEach(s=>s.classList.remove('active'));
+  if(r==='home'){renderHome();$('#screen-home').classList.add('active');}
+  if(r==='booking'){
+    if(!viewMonth)viewMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+    const ev=getEvent(state.eventId);if(!ev){go('home');return;}
+    $('#crumbM').textContent=ev.title;
+    $('#ifDur').textContent=ev.mins+' min';
+    $('#ifLoc').textContent=ev.location;
+    $('#ifPrice').textContent=`$${ev.price} · paid via Paddle`;
+    $('#ifDesc').textContent=ev.desc||'';
+    $$('#fmtToggle button').forEach(b=>b.classList.toggle('on',(b.dataset.fmt==='24')===data.prefs.fmt24));
+    renderCal();renderSlots();
+    $('#screen-booking').classList.add('active');
+  }
+  if(r==='details'){renderDetails();$('#screen-details').classList.add('active');}
+  if(r==='success'){renderSuccess();$('#screen-success').classList.add('active');}
+  icons();window.scrollTo(0,0);
+}
+
+window.addEventListener('hashchange',()=>{
+  const h=location.hash.replace(/^#\/?/,'').split('/')[0]||'home';
+  go(h);
+});
+
+go('home');
+if(!location.hash)history.replaceState(null,'','#/home');
+icons();
+})();
+</script>
+</body>
+</html>

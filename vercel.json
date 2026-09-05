@@ -1,4 +1,21 @@
 {
-  "cleanUrls": true,
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "version": 2,
+  "name": "chronos-scheduler",
+  "env": {
+    "NEXT_PUBLIC_API_URL": {
+      "description": "API Base URL for backend calls"
+    },
+    "PADDLE_VENDOR_ID": {
+      "description": "Paddle Vendor ID for payments"
+    },
+    "GOOGLE_CLIENT_ID": {
+      "description": "Google OAuth Client ID"
+    }
+  },
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "static",
+  "public": true,
+  "regions": ["iad1"]
 }
