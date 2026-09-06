@@ -21,7 +21,10 @@
   ],
   "author": "Chronos Team",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "googleapis": "^126.0.0",
+    "@paddle/paddle-node": "^1.1.2"
+  },
   "devDependencies": {},
   "engines": {
     "node": "18.x"

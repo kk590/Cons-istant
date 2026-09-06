@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meridian — Premium Scheduling</title>
+<title>RKK — Premium Scheduling</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%23CBA14C' stroke-width='2'/%3E%3Cpath d='M12 3v18' stroke='%23CBA14C' stroke-width='2'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -272,8 +272,9 @@ main .screen.active{display:block;animation:screenIn .35s cubic-bezier(.2,.7,.3,
 <header id="pubBar">
   <div class="pin">
     <a class="brand" href="#/home" data-nav="home">
-      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#CBA14C" stroke-width="1.7"/><path d="M12 3v18" stroke="#CBA14C" stroke-width="1.7"/><circle cx="12" cy="8.4" r="2.1" fill="#CBA14C"/></svg>
-      Meridian
+      <!-- RKK Logo -->
+      <img src="https://via.placeholder.com/24" alt="RKK Logo" id="rkk-logo" style="width: 24px; height: 24px;">
+      RKK
     </a>
   </div>
 </header>
@@ -285,12 +286,12 @@ main .screen.active{display:block;animation:screenIn .35s cubic-bezier(.2,.7,.3,
       <div class="profile-head">
         <img class="avatar-xl" src="https://picsum.photos/seed/meridian-host/160/160.jpg" alt="Rakshan Kamalakannan">
         <h1>Rakshan Kamalakannan <span class="vbadge" title="Identity verified"><i data-lucide="badge-check"></i></span></h1>
-        <p class="role">Founder &amp; Principal Consultant · Meridian Studio</p>
+        <p class="role">Founder &amp; Principal Consultant · RKK Studio</p>
         <p class="bio">I keep a limited number of open slots each week for strategy sessions, technical reviews and advisory calls. Every booking lands on Google Calendar with a live Google Meet link.</p>
         <p class="stat-line">240+ sessions hosted<b>·</b>calendar synced with google<b>·</b>payments secured by paddle</p>
       </div>
       <div class="meet-list" id="meetList"></div>
-      <div class="pub-foot"><i data-lucide="lock"></i>Powered by Meridian · Payments by Paddle · Calendar by Google</div>
+      <div class="pub-foot"><i data-lucide="lock"></i>Powered by RKK · Payments by Paddle · Calendar by Google</div>
     </div>
   </section>
 
@@ -305,7 +306,7 @@ main .screen.active{display:block;animation:screenIn .35s cubic-bezier(.2,.7,.3,
         <aside class="cal-info">
           <img class="avatar-md" src="https://picsum.photos/seed/meridian-host/128/128.jpg" alt="">
           <div class="info-name">Rakshan Kamalakannan</div>
-          <div class="info-sub">Founder, Meridian Studio</div>
+          <div class="info-sub">Founder, RKK Studio</div>
           <ul class="cal-meta">
             <li><i data-lucide="clock"></i><span id="ifDur">30 min</span></li>
             <li><i data-lucide="video"></i><span id="ifLoc">Google Meet</span></li>
@@ -348,7 +349,7 @@ main .screen.active{display:block;animation:screenIn .35s cubic-bezier(.2,.7,.3,
           </div>
         </div>
       </div>
-      <div class="pub-foot"><i data-lucide="lock"></i>Powered by Meridian · Payments by Paddle · Calendar by Google</div>
+      <div class="pub-foot"><i data-lucide="lock"></i>Powered by RKK · Payments by Paddle · Calendar by Google</div>
     </div>
   </section>
 
@@ -394,7 +395,7 @@ main .screen.active{display:block;animation:screenIn .35s cubic-bezier(.2,.7,.3,
           <p class="fine">Card details are entered on Paddle's secure hosted checkout — never on this page.</p>
         </div>
       </div>
-      <div class="pub-foot"><i data-lucide="lock"></i>Powered by Meridian · Payments by Paddle · Calendar by Google</div>
+      <div class="pub-foot"><i data-lucide="lock"></i>Powered by RKK · Payments by Paddle · Calendar by Google</div>
     </div>
   </section>
 
@@ -445,6 +446,11 @@ const CONFIG={
   HOST_EMAIL:'',
   BOOKING_URL:'meridian.app/rakshan'
 };
+
+if (typeof Paddle !== 'undefined' && CONFIG.PADDLE_CLIENT_TOKEN) {
+  Paddle.Environment.set('sandbox'); // Change to 'production' for live
+  Paddle.Initialize({ token: CONFIG.PADDLE_CLIENT_TOKEN });
+}
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const pad=n=>String(n).padStart(2,'0');
@@ -611,17 +617,96 @@ function renderDetails(){
   state.form[{fName:'name',fEmail:'email',fNotes:'notes'}[id]]=e.target.value;
 }));
 
-$('#btnPay').addEventListener('click',()=>{
+$('#btnPay').addEventListener('click', async ()=>{
   let ok=true;
   const bad=(w,c)=>{$(w).classList.toggle('bad',c);if(c)ok=false;};
   bad('#fwName',state.form.name.trim().length<2);
   bad('#fwEmail',!/^\S+@\S+\.\S+$/.test(state.form.email.trim()));
   if(!ok)return;
-  const ev=getEvent(state.eventId);
-  finalizeBooking({paid:false});
+
+  const btn = $('#btnPay');
+  const btnLbl = $('#btnPayLabel');
+  const oldLbl = btnLbl.textContent;
+  btn.disabled = true;
+  btnLbl.textContent = 'Processing...';
+
+  try {
+    const ev=getEvent(state.eventId);
+    const when=new Date(state.date.getFullYear(),state.date.getMonth(),state.date.getDate(),Math.floor(state.slot/60),state.slot%60);
+    const generatedBookingId = ref();
+
+    const payRes = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bookingId: generatedBookingId,
+        amount: ev.price,
+        currency: 'USD',
+        email: state.form.email.trim(),
+        name: state.form.name.trim(),
+        description: ev.title
+      })
+    });
+    const payData = await payRes.json();
+    
+    if (payData.success && payData.checkoutUrl) {
+      if (typeof Paddle !== 'undefined' && Paddle.Checkout) {
+        Paddle.Checkout.open({
+          settings: { displayMode: "overlay" },
+          transactionId: payData.transactionId,
+          successCallback: async function(data) {
+            btnLbl.textContent = 'Generating Meet Link...';
+            await processSuccessfulPayment(generatedBookingId, ev, when);
+          },
+          closeCallback: function(data) {
+            btn.disabled = false;
+            btnLbl.textContent = oldLbl;
+          }
+        });
+      } else {
+        window.location.href = payData.checkoutUrl;
+      }
+    } else {
+      toast('Payment initialization failed.');
+      btn.disabled = false;
+      btnLbl.textContent = oldLbl;
+    }
+  } catch (err) {
+    console.error(err);
+    toast('An error occurred.');
+    btn.disabled = false;
+    btnLbl.textContent = oldLbl;
+  }
 });
 
-function finalizeBooking({paid}){
+async function processSuccessfulPayment(bookingId, ev, when) {
+  try {
+    const dateStr = when.getFullYear() + '-' + pad(when.getMonth()+1) + '-' + pad(when.getDate());
+    const timeStr = [pad(when.getHours()), pad(when.getMinutes())].join(':');
+    
+    const calRes = await fetch('/api/calendar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bookingId: bookingId,
+        name: state.form.name.trim(),
+        email: state.form.email.trim(),
+        date: dateStr,
+        time: timeStr,
+        duration: ev.mins,
+        notes: state.form.notes.trim(),
+        tz: TZ
+      })
+    });
+    const calData = await calRes.json();
+    finalizeBooking({ paid: true, meetLink: calData.meetLink });
+  } catch (err) {
+    console.error(err);
+    finalizeBooking({ paid: true, meetLink: null });
+  }
+}
+
+function finalizeBooking({paid, meetLink}){
   if(!state.date||state.slot===null)return;
   const ev=getEvent(state.eventId);
   const when=new Date(state.date.getFullYear(),state.date.getMonth(),state.date.getDate(),Math.floor(state.slot/60),state.slot%60);
@@ -629,7 +714,7 @@ function finalizeBooking({paid}){
     id:ref(),eventId:ev.id,eventTitle:ev.title,mins:ev.mins,price:ev.price,paid,
     name:state.form.name.trim(),email:state.form.email.trim(),notes:state.form.notes.trim(),
     whenISO:when.toISOString(),tz:TZ,status:paid?'Confirmed':'Unpaid (test)',
-    txn:null,meet:'',gcalId:null,gcalUrl:null,location:ev.location
+    txn:null,meet:meetLink||'',gcalId:null,gcalUrl:null,location:ev.location
   };
   data.bookings.unshift(b);persist();
   state.lastRef=b.id;state.slot=null;state.date=null;
@@ -644,7 +729,17 @@ function renderSuccess(){
   const s=bkWhen(b),end=new Date(s.getTime()+b.mins*60000);
   $('#okName').textContent=b.name;
   $('#okWhen').textContent=`${dLong(s)} · ${slotTime(s.getHours()*60+s.getMinutes())} – ${slotTime(end.getHours()*60+end.getMinutes())} (${TZ})`;
-  $('#okMeetHint').textContent='The meeting link will be shared by the host.';
+  
+  if(b.meet) {
+    $('#okMeetHint').textContent='Click the link to join the meeting.';
+    $('#okMeetWrap').hidden = false;
+    $('#okMeet').textContent = b.meet;
+    $('#btnCopyMeet').dataset.copy = b.meet;
+  } else {
+    $('#okMeetHint').textContent='The meeting link will be shared by the host.';
+    $('#okMeetWrap').hidden = true;
+  }
+  
   $('#okPay').textContent=`Paddle · $${b.price} paid`;
 }
 
